@@ -1,0 +1,11 @@
+name = "home-page"
+main = "index.js"
+compatibility_date = "2025-09-23"
+
+account_id = "0orqDnpVilx9somcJ3dPlbuH8t9fytfsInXpUrid"
+workers_dev = true
+
+# Uncomment and set this if you want a custom domain route:
+# routes = ["example.com/*"]
+
+# If using KV, D1, or R2 bindings, you’d define them here too.
