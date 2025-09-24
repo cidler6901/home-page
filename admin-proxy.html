@@ -24,20 +24,25 @@ textarea{height:150px;}
 <div class="hidden" id="editorBox">
 <h2>Edit Announcement</h2>
 <textarea id="announcementText"></textarea>
+<label><input type="checkbox" id="announcementEnabled"> Enable Announcement</label>
 <button onclick="saveAnnouncement()">Save Announcement</button>
 <button onclick="removeAnnouncement()" style="background:red;color:white;">Remove Announcement</button>
 <p style="font-size:14px;color:#555;">Changes update announcement.json via GitHub API.</p>
 </div>
 
 <script>
-const ADMIN_USER="admin";
-const ADMIN_PASS="ci259026901";
-const GITHUB_USER="cidler6901"; // replace
-const GITHUB_REPO="proxy";     // replace
-const FILE_PATH="announcement.json";
-const BRANCH="main";
-const TOKEN="Y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"; // replace
+// Admin login
+const ADMIN_USER="admin"; // your admin username
+const ADMIN_PASS="ci259026901"; // your admin password
 
+// GitHub API details
+const GITHUB_USER="cidler6901"; // your GitHub username
+const GITHUB_REPO="proxy";      // your repository
+const FILE_PATH="announcement.json"; // file to edit
+const BRANCH="main";
+const TOKEN="Y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"; // replace with your GitHub PAT
+
+// Login
 function login(){
   const u=document.getElementById('username').value;
   const p=document.getElementById('password').value;
@@ -45,40 +50,59 @@ function login(){
     document.getElementById('loginBox').classList.add('hidden');
     document.getElementById('editorBox').classList.remove('hidden');
     loadCurrentAnnouncement();
-  }else alert("Incorrect username/password!");
+  } else alert("Incorrect username/password!");
 }
 
+// Load current announcement
 function loadCurrentAnnouncement(){
   fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?ref=${BRANCH}`)
   .then(res=>res.json())
   .then(data=>{
-    const content=atob(data.content);
-    const json=JSON.parse(content);
-    document.getElementById('announcementText').value=json.announcement;
-    window.currentSHA=data.sha;
-  }).catch(()=>document.getElementById('announcementText').value="");
+    const content = atob(data.content);
+    const json = JSON.parse(content);
+    document.getElementById('announcementText').value = json.announcement;
+    document.getElementById('announcementEnabled').checked = json.enabled || false;
+    window.currentSHA = data.sha;
+  })
+  .catch(()=>{ 
+    document.getElementById('announcementText').value="";
+    document.getElementById('announcementEnabled').checked=false;
+  });
 }
 
+// Save announcement
 function saveAnnouncement(){
-  const text=document.getElementById('announcementText').value.trim();
-  if(!text) return alert("Cannot be empty");
-  updateFileOnGitHub(text);
+  const text = document.getElementById('announcementText').value.trim();
+  const enabled = document.getElementById('announcementEnabled').checked;
+  if(!text) return alert("Announcement cannot be empty!");
+  updateFileOnGitHub({announcement:text, enabled:enabled});
 }
 
+// Remove announcement
 function removeAnnouncement(){
-  if(confirm("Are you sure?")) updateFileOnGitHub("");
+  if(confirm("Are you sure you want to remove the announcement?")){
+    updateFileOnGitHub({announcement:"", enabled:false});
+  }
 }
 
-function updateFileOnGitHub(text){
-  const message = text ? "Update announcement" : "Remove announcement";
-  const content=btoa(JSON.stringify({announcement:text}));
-  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`,{
-    method:"PUT",
-    headers:{ "Authorization":`token ${TOKEN}`,"Content-Type":"application/json"},
+// Update GitHub file
+function updateFileOnGitHub(obj){
+  const message = obj.enabled ? "Update announcement" : "Remove announcement";
+  const content = btoa(JSON.stringify(obj));
+  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${TOKEN}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({message, content, sha: window.currentSHA, branch: BRANCH})
-  }).then(res=>res.json())
-  .then(data=>{ alert("Announcement updated!"); loadCurrentAnnouncement(); })
-  .catch(err=>alert("Error: "+err));
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    alert("Announcement updated successfully!");
+    loadCurrentAnnouncement();
+  })
+  .catch(err=>alert("Error updating announcement: "+err));
 }
 </script>
 
