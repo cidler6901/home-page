@@ -75,3 +75,60 @@ function removeAnnouncement(){
 </script>
 </body>
 </html>
+
+<h2>Edit Quick Links</h2>
+<div id="quickLinksEditor"></div>
+<button onclick="addQuickLink()">Add Link</button>
+<button onclick="saveQuickLinks()">Save Quick Links</button>
+
+<script>
+let quickLinks = [];
+let quickLinksSHA = null;
+
+function loadQuickLinks(){
+  fetch("/api/quicklinks")
+    .then(res=>res.json())
+    .then(data=>{
+      quickLinks = data.links || [];
+      quickLinksSHA = data.sha;
+      renderQuickLinksEditor();
+    });
+}
+
+function renderQuickLinksEditor(){
+  const container = document.getElementById("quickLinksEditor");
+  container.innerHTML = "";
+  quickLinks.forEach((link, i)=>{
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <input type="text" value="${link.name}" placeholder="Name" onchange="quickLinks[${i}].name=this.value">
+      <input type="text" value="${link.url}" placeholder="URL" onchange="quickLinks[${i}].url=this.value">
+      <button onclick="removeQuickLink(${i})">Remove</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addQuickLink(){
+  quickLinks.push({name:"", url:""});
+  renderQuickLinksEditor();
+}
+
+function removeQuickLink(i){
+  quickLinks.splice(i,1);
+  renderQuickLinksEditor();
+}
+
+function saveQuickLinks(){
+  fetch("/api/quicklinks",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({links:quickLinks, sha:quickLinksSHA})
+  })
+  .then(res=>res.json())
+  .then(()=>{ alert("Quick Links saved!"); loadQuickLinks(); });
+}
+
+// Initialize
+loadQuickLinks();
+</script>
