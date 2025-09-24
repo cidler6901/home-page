@@ -7,7 +7,7 @@
 <style>
 body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
 #topBar { background:#222; color:white; padding:5px 10px; display:flex; align-items:center; flex-wrap:wrap; }
-#quickLinks { display:flex; gap:8px; margin-right:10px; }
+#quickLinks { display:flex; gap:8px; margin-right:10px; flex-wrap:wrap; }
 #quickLinks button { padding:5px 8px; font-size:14px; cursor:pointer; }
 #urlBar { flex:1; min-width:200px; max-width:300px; padding:3px; font-size:14px; }
 #topBar button.control { margin-left:10px; padding:5px 10px; }
@@ -58,11 +58,7 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
 
 <div id="topBar">
   <!-- Quick Links -->
-  <div id="quickLinks">
-    <button onclick="goQuick('https://google.com')">Google</button>
-    <button onclick="goQuick('https://youtube.com')">YouTube</button>
-    <button onclick="goQuick('https://github.com')">GitHub</button>
-  </div>
+  <div id="quickLinks"></div>
 
   <!-- URL Bar -->
   <input type="text" id="urlBar" placeholder="Enter URL and press Enter">
@@ -97,11 +93,33 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
 const iframe = document.getElementById('proxyFrame');
 const urlBar = document.getElementById('urlBar');
 const topBar = document.getElementById('topBar');
+const quickLinksContainer = document.getElementById('quickLinks');
 
-// Worker Proxy URL
+// Your Worker Proxy URL
 const PROXY_URL = "https://proxy.cidler6901.workers.dev/?url=";
 
-// Navigate iframe on Enter
+// ------------------- Quick Links -------------------
+function loadQuickLinks(){
+  fetch("/api/quicklinks")
+    .then(res=>res.json())
+    .then(data=>{
+      quickLinksContainer.innerHTML = "";
+      data.links.forEach(link=>{
+        const btn = document.createElement("button");
+        btn.textContent = link.name;
+        btn.onclick = ()=>goQuick(link.url);
+        quickLinksContainer.appendChild(btn);
+      });
+    });
+}
+function goQuick(url){
+  iframe.src = PROXY_URL + encodeURIComponent(url);
+  urlBar.value = url;
+  hideTopBar();
+}
+loadQuickLinks();
+
+// ------------------- URL Navigation -------------------
 urlBar.addEventListener('keydown', e => {
   if(e.key === 'Enter'){
     let input = urlBar.value.trim();
@@ -113,48 +131,17 @@ urlBar.addEventListener('keydown', e => {
   }
 });
 
-// Quick Links
-function goQuick(url){
-  iframe.src = PROXY_URL + encodeURIComponent(url);
-  urlBar.value = url;
-  hideTopBar();
-}
-
-function toggleTopBar() {
-  if(topBar.style.display === 'none') topBar.style.display = 'flex';
-  else topBar.style.display = 'none';
-}
-function hideTopBar() { topBar.style.display='none'; }
-function showTopBar() { topBar.style.display='flex'; }
-
-// Real browser fullscreen
-function enterFullscreen() {
-  const elem = document.documentElement;
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
-  else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
-  hideTopBar();
-}
-document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement) {
-    showTopBar();
-  }
-});
-
-// Keep URL bar updated when iframe navigates
+// Auto-update URL bar when iframe navigates
 iframe.addEventListener("load", () => {
   try {
     const currentURL = iframe.contentWindow.location.href;
-    // Strip proxy prefix if found
     if(currentURL.startsWith(PROXY_URL)){
       const decoded = decodeURIComponent(currentURL.replace(PROXY_URL,""));
       urlBar.value = decoded;
     } else {
       urlBar.value = currentURL;
     }
-  } catch(err) {
-    // Some pages block cross-origin, fallback to showing iframe.src
+  } catch(err){
     if(iframe.src.startsWith(PROXY_URL)){
       urlBar.value = decodeURIComponent(iframe.src.replace(PROXY_URL,""));
     } else {
@@ -163,7 +150,27 @@ iframe.addEventListener("load", () => {
   }
 });
 
-// Announcement logic
+// ------------------- Top Bar -------------------
+function toggleTopBar() {
+  if(topBar.style.display === 'none') topBar.style.display = 'flex';
+  else topBar.style.display = 'none';
+}
+function hideTopBar() { topBar.style.display='none'; }
+function showTopBar() { topBar.style.display='flex'; }
+
+// ------------------- Fullscreen -------------------
+function enterFullscreen() {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) elem.requestFullscreen();
+  else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+  else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+  hideTopBar();
+}
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) showTopBar();
+});
+
+// ------------------- Announcement -------------------
 function getSessionCount(){ return parseInt(localStorage.getItem('announcementSessions')||'0'); }
 function incrementSessionCount(){ localStorage.setItem('announcementSessions', getSessionCount()+1); }
 function resetSessionCount(){ localStorage.setItem('announcementSessions','0'); }
