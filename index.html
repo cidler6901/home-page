@@ -87,7 +87,7 @@ updateHistoryDropdown();
 
 // Load announcement
 function loadAnnouncement(){
-  fetch('https://raw.githubusercontent.com/cidler6901/home-page/main/announcement.json') // replace USERNAME/REPO
+  fetch('https://raw.githubusercontent.com/cidler6901/proxy/main/announcement.json') // replace USERNAME/REPO
   .then(res=>res.json())
   .then(data=>{
     if(data.announcement && data.announcement.trim()!==""){
