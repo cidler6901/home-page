@@ -51,7 +51,7 @@ function login(){
 }
 
 function loadCurrentAnnouncement(){
-  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?ref=${BRANCH}`)
+  fetch(`https://api.github.com/repos/cidler6901/proxy/contents/announcement.json?ref=main`)
   .then(res=>res.json())
   .then(data=>{
     const content = atob(data.content);
@@ -82,7 +82,7 @@ function removeAnnouncement(){
 function updateFileOnGitHub(obj){
   const message = obj.enabled ? "Update announcement" : "Remove announcement";
   const content = btoa(JSON.stringify(obj));
-  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+  fetch(`https://api.github.com/repos/cidler6901/proxy/contents/announcement.json?ref=main`, {
     method: "PUT",
     headers: {
       "Authorization": `token ${TOKEN}`,
