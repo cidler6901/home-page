@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edit Announcements</title>
+<title>Announcements</title>
 <style>
 body{font-family:Arial,sans-serif;padding:20px;background:#f0f2f5;}
 input,textarea,button{display:block;width:100%;margin:10px 0;padding:10px;font-size:16px;}
@@ -89,7 +89,7 @@ function removeAnnouncement(){
 function updateFileOnGitHub(obj){
   const message = obj.enabled ? "Update announcement" : "Remove announcement";
   const content = btoa(JSON.stringify(obj));
-  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+  fetch(`https://api.github.com/repos/${cidler6901}/${proxy}/contents/${announcement.json}?ref=${nain}`, {
     method: "PUT",
     headers: {
       "Authorization": `token ${TOKEN}`,
