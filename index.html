@@ -6,10 +6,12 @@
 <title>Proxy</title>
 <style>
 body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
-#topBar { background:#222; color:white; padding:5px 10px; display:flex; align-items:center; }
-#topBar button { margin-left:auto; }
-#urlBar { flex:1; margin-left:10px; padding:5px; }
-#iframeContainer { width:100%; height:calc(100% - 40px); }
+#topBar { background:#222; color:white; padding:5px 10px; display:flex; align-items:center; flex-wrap:wrap; }
+#quickLinks { display:flex; gap:8px; margin-right:10px; }
+#quickLinks button { padding:5px 8px; font-size:14px; cursor:pointer; }
+#urlBar { flex:1; min-width:200px; max-width:300px; padding:3px; font-size:14px; }
+#topBar button.control { margin-left:10px; padding:5px 10px; }
+#iframeContainer { width:100%; height:calc(100% - 50px); }
 #proxyFrame { width:100%; height:100%; border:none; }
 
 /* Pop-up overlay */
@@ -55,12 +57,23 @@ body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
 <body>
 
 <div id="topBar">
+  <!-- Quick Links -->
+  <div id="quickLinks">
+    <button onclick="goQuick('https://google.com')">Google</button>
+    <button onclick="goQuick('https://youtube.com')">YouTube</button>
+    <button onclick="goQuick('https://github.com')">GitHub</button>
+  </div>
+
+  <!-- URL Bar -->
   <input type="text" id="urlBar" placeholder="Enter URL and press Enter">
-  <button onclick="toggleTopBar()">Show/Hide Top Bar</button>
+
+  <!-- Controls -->
+  <button class="control" onclick="toggleTopBar()">Show/Hide Bar</button>
+  <button class="control" onclick="enterFullscreen()">Fullscreen</button>
 </div>
 
 <div id="iframeContainer">
-  <iframe id="proxyFrame" src="https://yourproxy.workers.dev/https://example.com"></iframe>
+  <iframe id="proxyFrame" src="https://example.com"></iframe>
 </div>
 
 <!-- Announcement Pop-up -->
@@ -85,23 +98,27 @@ const iframe = document.getElementById('proxyFrame');
 const urlBar = document.getElementById('urlBar');
 const topBar = document.getElementById('topBar');
 
-// CHANGE THIS to your proxy URL
-const PROXY_URL = "https://yourproxy.workers.dev/";
+// Worker Proxy URL
+const PROXY_URL = "https://proxy.cidler6901.workers.dev/?url=";
 
 // Navigate iframe on Enter
 urlBar.addEventListener('keydown', e => {
   if(e.key === 'Enter'){
-    let url = urlBar.value.trim();
-
-    // Add https:// if missing
-    if(!url.startsWith("http")) {
-      url = "https://" + url;
+    let input = urlBar.value.trim();
+    if(!input.startsWith("http://") && !input.startsWith("https://")){
+      input = "https://" + input;
     }
-
-    iframe.src = PROXY_URL + url;
+    iframe.src = PROXY_URL + encodeURIComponent(input);
     hideTopBar();
   }
 });
+
+// Quick Links
+function goQuick(url){
+  iframe.src = PROXY_URL + encodeURIComponent(url);
+  urlBar.value = url;
+  hideTopBar();
+}
 
 function toggleTopBar() {
   if(topBar.style.display === 'none') topBar.style.display = 'flex';
@@ -109,6 +126,42 @@ function toggleTopBar() {
 }
 function hideTopBar() { topBar.style.display='none'; }
 function showTopBar() { topBar.style.display='flex'; }
+
+// Real browser fullscreen
+function enterFullscreen() {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+  else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
+  hideTopBar();
+}
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) {
+    showTopBar();
+  }
+});
+
+// Keep URL bar updated when iframe navigates
+iframe.addEventListener("load", () => {
+  try {
+    const currentURL = iframe.contentWindow.location.href;
+    // Strip proxy prefix if found
+    if(currentURL.startsWith(PROXY_URL)){
+      const decoded = decodeURIComponent(currentURL.replace(PROXY_URL,""));
+      urlBar.value = decoded;
+    } else {
+      urlBar.value = currentURL;
+    }
+  } catch(err) {
+    // Some pages block cross-origin, fallback to showing iframe.src
+    if(iframe.src.startsWith(PROXY_URL)){
+      urlBar.value = decodeURIComponent(iframe.src.replace(PROXY_URL,""));
+    } else {
+      urlBar.value = iframe.src;
+    }
+  }
+});
 
 // Announcement logic
 function getSessionCount(){ return parseInt(localStorage.getItem('announcementSessions')||'0'); }
