@@ -1,4 +1,5 @@
 {
+  "announcement": "sup",
   "enabled": true,
-  "announcement": "whats up."
+  "announcementVersion": 1
 }
