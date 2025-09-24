@@ -1,0 +1,7 @@
+{
+  "links": [
+    { "name": "Google", "url": "https://google.com" },
+    { "name": "YouTube", "url": "https://youtube.com" },
+    { "name": "GitHub", "url": "https://github.com" }
+  ]
+}
