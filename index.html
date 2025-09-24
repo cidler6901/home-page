@@ -3,153 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Full-Screen Proxy</title>
+<title>Proxy</title>
 <style>
-html, body{margin:0;padding:0;height:100%;font-family:Segoe UI,sans-serif;overflow:hidden;background:#f0f2f5;}
-header{background:linear-gradient(90deg,#6200ea,#03dac6);color:white;padding:15px;text-align:center;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:100;}
-header h1{margin:0;font-size:1.8em;}
-#toggleControlsBtn{padding:8px 12px;border:none;border-radius:15px;background:#03dac6;color:white;font-size:14px;cursor:pointer;}
-#announcementBanner{display:none;background:#ffeb3b;color:#333;padding:10px 20px;text-align:center;font-weight:bold;position:relative;z-index:100;}
-#announcementBanner button{position:absolute;right:10px;top:5px;border:none;background:none;font-size:18px;font-weight:bold;cursor:pointer;color:#333;}
-#announcementModal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background: rgba(0,0,0,0.5);}
-#announcementModal .modal-content{background:#fff;margin:15% auto;padding:20px;width:80%;max-width:400px;border-radius:15px;text-align:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);}
-#announcementModal button{padding:10px 20px;border:none;background:#6200ea;color:white;border-radius:10px;cursor:pointer;margin-top:10px;}
-#announcementModal label{display:block;margin-top:10px;cursor:pointer;font-size:14px;}
-#controlsContainer{position:absolute;top:70px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,0.9);padding:10px 15px;border-radius:20px;z-index:100;}
-#controls{display:flex;gap:10px;}
-#controls input{padding:10px 15px;border-radius:20px;border:1px solid #ccc;font-size:16px;width:300px;outline:none;}
-#controls button{padding:10px 20px;border-radius:20px;border:none;background:#6200ea;color:white;font-size:16px;cursor:pointer;}
-#quickLinks{display:flex;gap:10px;flex-wrap:wrap;}
-#quickLinks button{padding:10px 15px;border-radius:20px;border:none;background:#03dac6;color:#fff;font-size:14px;cursor:pointer;}
-#proxyFrame{position:absolute;top:0;left:0;width:100%;border:none;z-index:1;}
+body, html { margin:0; padding:0; height:100%; font-family: Arial,sans-serif; }
+#topBar { background:#222; color:white; padding:5px 10px; display:flex; align-items:center; }
+#topBar button { margin-left:auto; }
+#urlBar { flex:1; margin-left:10px; padding:5px; }
+#iframeContainer { width:100%; height:calc(100% - 40px); }
+#proxyFrame { width:100%; height:100%; border:none; }
+
+/* Pop-up overlay */
+#announcementPopup {
+  display: none;
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+#popupContent {
+  background:white;
+  padding:20px;
+  border-radius:8px;
+  max-width:400px;
+  text-align:center;
+  position: relative;
+}
+
+/* Banner */
+#announcementBanner {
+  display: none;
+  position: fixed;
+  top:0; left:0; right:0;
+  background: #ffeb3b;
+  color:#000;
+  padding:10px 20px;
+  font-weight:bold;
+  z-index:1000;
+}
+#bannerClose {
+  position:absolute;
+  right:10px;
+  top:5px;
+  cursor:pointer;
+  font-weight:bold;
+}
 </style>
 </head>
 <body>
 
-<header>
-<h1>Full-Screen Proxy</h1>
-<button id="toggleControlsBtn" onclick="toggleControls()">Show Controls</button>
-</header>
+<div id="topBar">
+  <input type="text" id="urlBar" placeholder="Enter URL and press Enter">
+  <button onclick="toggleTopBar()">Show/Hide Top Bar</button>
+</div>
 
+<div id="iframeContainer">
+  <iframe id="proxyFrame" src="https://example.com"></iframe>
+</div>
+
+<!-- Announcement Pop-up -->
+<div id="announcementPopup">
+  <div id="popupContent">
+    <span id="popupText"></span>
+    <div style="margin-top:10px;">
+      <label><input type="checkbox" id="dontShow"> Don't show for next 5 sessions</label>
+    </div>
+    <button onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+<!-- Announcement Banner -->
 <div id="announcementBanner">
   <span id="bannerText"></span>
-  <button onclick="closeBanner()">X</button>
+  <span id="bannerClose" onclick="closeBanner()">X</span>
 </div>
-
-<div id="announcementModal">
-  <div class="modal-content">
-    <p id="modalText"></p>
-    <label><input type="checkbox" id="skipNextSessions"> Don't show for next 5 sessions</label>
-    <button onclick="closeModal()">Close</button>
-  </div>
-</div>
-
-<div id="controlsContainer">
-  <div id="controls">
-    <input type="text" id="urlInput" placeholder="Enter website URL">
-    <button onclick="loadSite()">Go</button>
-  </div>
-  <div id="quickLinks">
-    <button onclick="loadSiteURL('https://ubg6.neocities.org/games/Eaglecraft')">Minecraft</button>
-    <button onclick="loadSiteURL('http://ubg6.cidler6901.workers.dev/')">US4</button>
-    <button onclick="loadSiteURL('http://ubg1.cidler6901.workers.dev/')">US5</button>
-    <button onclick="loadSiteURL('https://takaiwebsite.neocities.org/minecraft')">Minecraft 2</button>
-    <button onclick="loadSiteURL('https://jblaha.art/sketchbook/')">Sketchbook</button>
-  </div>
-</div>
-
-<iframe id="proxyFrame" src=""></iframe>
 
 <script>
-// Announcement
-function loadAnnouncement(){
-  fetch('https://raw.githubusercontent.com/cidler6901/proxy/main/announcement.json')
-  .then(res=>res.json())
-  .then(data=>{
-    if(!data.enabled || !data.announcement.trim()) return;
+const iframe = document.getElementById('proxyFrame');
+const urlBar = document.getElementById('urlBar');
+const topBar = document.getElementById('topBar');
 
-    const currentVersion = data.announcementVersion || 1;
-    const sessionData = JSON.parse(localStorage.getItem('announcementSessions')||'{}');
-    const userSessions = sessionData[currentVersion] || 0;
-
-    if(userSessions < 5){
-      document.getElementById('modalText').textContent = data.announcement;
-      document.getElementById('announcementModal').style.display="block";
-    }
-
-    document.getElementById('bannerText').textContent = data.announcement;
-    document.getElementById('announcementBanner').style.display="block";
-
-    window.announcementVersion = currentVersion;
-
-    resizeIframe();
-  })
-  .catch(err=>console.log("No announcement found:", err));
-}
-
-function closeModal(){
-  const skip=document.getElementById('skipNextSessions').checked;
-  if(skip){
-    const sessionData=JSON.parse(localStorage.getItem('announcementSessions')||'{}');
-    sessionData[window.announcementVersion] = (sessionData[window.announcementVersion]||0)+1;
-    localStorage.setItem('announcementSessions', JSON.stringify(sessionData));
+// Navigate iframe on Enter
+urlBar.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    iframe.src = urlBar.value;
+    hideTopBar();
   }
-  document.getElementById('announcementModal').style.display="none";
-}
-
-function closeBanner(){
-  document.getElementById('announcementBanner').style.display="none";
-  resizeIframe();
-}
-
-// Proxy
-function loadSite(){
-  let url=document.getElementById('urlInput').value.trim();
-  if(!url) return alert("Enter a URL");
-  if(!url.startsWith("http")) url="https://"+url;
-  document.getElementById('proxyFrame').src="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
-  localStorage.setItem('lastURL', url);
-  document.getElementById('controlsContainer').style.display='none';
-  document.getElementById('toggleControlsBtn').style.display='inline-block';
-  resizeIframe();
-}
-
-function loadSiteURL(url){
-  document.getElementById('proxyFrame').src="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
-  localStorage.setItem('lastURL', url);
-  document.getElementById('controlsContainer').style.display='none';
-  document.getElementById('toggleControlsBtn').style.display='inline-block';
-  resizeIframe();
-}
-
-// Toggle controls
-function toggleControls(){
-  const c=document.getElementById('controlsContainer');
-  if(c.style.display==='none'||c.style.display==='') { c.style.display='flex'; document.getElementById('toggleControlsBtn').style.display='none'; }
-  else { c.style.display='none'; document.getElementById('toggleControlsBtn').style.display='inline-block'; }
-  resizeIframe();
-}
-
-// Resize iframe
-function resizeIframe(){
-  const f=document.getElementById('proxyFrame');
-  const header=document.querySelector('header').offsetHeight;
-  const banner=document.getElementById('announcementBanner');
-  const bannerH=banner.style.display!=='none'?banner.offsetHeight:0;
-  const controls=document.getElementById('controlsContainer');
-  const controlsH=controls.style.display!=='none'?controls.offsetHeight:0;
-  f.style.top=(header+bannerH+controlsH)+'px';
-  f.style.height=(window.innerHeight-header-bannerH-controlsH)+'px';
-}
-
-// On load
-window.addEventListener('resize',resizeIframe);
-window.addEventListener('load',()=>{
-  const lastURL=localStorage.getItem('lastURL');
-  if(lastURL){ loadSiteURL(lastURL); }
-  loadAnnouncement();
 });
-</script>
 
+function toggleTopBar() {
+  if(topBar.style.display === 'none') topBar.style.display = 'flex';
+  else topBar.style.display = 'none';
+}
+function hideTopBar() { topBar.style.display='none'; }
+function showTopBar() { topBar.style.display='flex'; }
+
+// Announcement logic
+function getSessionCount(){ return parseInt(localStorage.getItem('announcementSessions')||'0'); }
+function incrementSessionCount(){ localStorage.setItem('announcementSessions', getSessionCount()+1); }
+function resetSessionCount(){ localStorage.setItem('announcementSessions','0'); }
+
+fetch("/api/announcement")
+.then(res=>res.json())
+.then(data=>{
+  if(!data.enabled) return;
+  const lastSHA = localStorage.getItem('announcementSHA');
+  if(lastSHA !== data.sha){
+    resetSessionCount();
+    localStorage.setItem('announcementSHA', data.sha);
+  }
+  if(getSessionCount()<5) showPopup(data.announcement);
+  showBanner(data.announcement);
+});
+
+function showPopup(text){
+  document.getElementById('popupText').innerText = text;
+  document.getElementById('announcementPopup').style.display='flex';
+}
+function closePopup(){
+  if(document.getElementById('dontShow').checked) localStorage.setItem('announcementSessions','5');
+  document.getElementById('announcementPopup').style.display='none';
+  incrementSessionCount();
+}
+function showBanner(text){
+  document.getElementById('announcementBanner').style.display='block';
+  document.getElementById('bannerText').innerText = text;
+}
+function closeBanner(){ document.getElementById('announcementBanner').style.display='none'; }
+</script>
 </body>
 </html>
