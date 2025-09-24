@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Announcements</title>
+<title>Admin Announcements</title>
 <style>
 body{font-family:Arial,sans-serif;padding:20px;background:#f0f2f5;}
 input,textarea,button{display:block;width:100%;margin:10px 0;padding:10px;font-size:16px;}
@@ -34,12 +34,6 @@ textarea{height:150px;}
 const ADMIN_USER="admin";
 const ADMIN_PASS="ci259026901";
 
-const GITHUB_USER="cidler6901";
-const GITHUB_REPO="proxy";
-const FILE_PATH="announcement.json";
-const BRANCH="main";
-const TOKEN="Y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"; // replace carefully
-
 function login(){
   const u=document.getElementById('username').value;
   const p=document.getElementById('password').value;
@@ -51,18 +45,12 @@ function login(){
 }
 
 function loadCurrentAnnouncement(){
-  fetch(`https://api.github.com/repos/cidler6901/proxy/contents/announcement.json?ref=main`)
+  fetch("/api/announcement")
   .then(res=>res.json())
   .then(data=>{
-    const content = atob(data.content);
-    const json = JSON.parse(content);
-    document.getElementById('announcementText').value = json.announcement;
-    document.getElementById('announcementEnabled').checked = json.enabled || false;
+    document.getElementById('announcementText').value = data.announcement || "";
+    document.getElementById('announcementEnabled').checked = data.enabled || false;
     window.currentSHA = data.sha;
-  })
-  .catch(()=>{ 
-    document.getElementById('announcementText').value="";
-    document.getElementById('announcementEnabled').checked=false;
   });
 }
 
@@ -70,34 +58,25 @@ function saveAnnouncement(){
   const text = document.getElementById('announcementText').value.trim();
   const enabled = document.getElementById('announcementEnabled').checked;
   if(!text) return alert("Announcement cannot be empty!");
-  updateFileOnGitHub({announcement:text, enabled:enabled});
+  fetch("/api/announcement",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({announcement:text, enabled, sha:window.currentSHA})
+  })
+  .then(res=>res.json())
+  .then(()=> { alert("Saved!"); loadCurrentAnnouncement(); });
 }
 
 function removeAnnouncement(){
-  if(confirm("Are you sure you want to remove the announcement?")){
-    updateFileOnGitHub({announcement:"", enabled:false});
-  }
-}
-
-function updateFileOnGitHub(obj){
-  const message = obj.enabled ? "Update announcement" : "Remove announcement";
-  const content = btoa(JSON.stringify(obj));
-  fetch(`https://api.github.com/repos/cidler6901/proxy/contents/announcement.json?ref=main`, {
-    method: "PUT",
-    headers: {
-      "Authorization": `token ${TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({message, content, sha: window.currentSHA, branch: BRANCH})
-  })
-  .then(res=>res.json())
-  .then(data=>{
-    alert("Announcement updated successfully!");
-    loadCurrentAnnouncement();
-  })
-  .catch(err=>alert("Error updating announcement: "+err));
+  if(confirm("Remove announcement?")){
+    fetch("/api/announcement",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({announcement:"", enabled:false, sha:window.currentSHA})
+    })
+    .then(res=>res.json())
+    .then(()=> { alert("Removed!"); loadCurrentAnnouncement(); });
 }
 </script>
-
 </body>
 </html>
