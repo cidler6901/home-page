@@ -10,7 +10,18 @@ header { background: linear-gradient(90deg,#6200ea,#03dac6); color:white; paddin
 header h1 { font-size:2.2em; margin-bottom:10px; }
 header p { font-size:1em; }
 
-.announcement { display:none; background:#fff; padding:15px; margin:20px auto; width:90%; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.1); }
+/* Modal */
+.modal {
+  display:none;
+  position: fixed; z-index:1000;
+  left:0; top:0; width:100%; height:100%;
+  background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+  background:#fff; margin:15% auto; padding:20px; width:80%; max-width:400px;
+  border-radius:15px; text-align:center; box-shadow:0 4px 8px rgba(0,0,0,0.2);
+}
+.modal button { padding:10px 20px; border:none; background:#6200ea; color:white; border-radius:10px; cursor:pointer; }
 
 .proxy-input { display:flex; justify-content:center; margin:20px 0; gap:10px; flex-wrap:wrap; }
 .proxy-input input { padding:12px 15px; font-size:16px; width:300px; border-radius:25px; border:1px solid #ccc; outline:none; }
@@ -34,9 +45,12 @@ footer { background:#ddd; padding:15px; font-size:14px; text-align:center; }
 <p>Enter a website URL or select a quick link</p>
 </header>
 
-<div class="announcement" id="announcementCard">
-<strong>Announcement:</strong>
-<p id="announcementTextDisplay"></p>
+<!-- Modal -->
+<div class="modal" id="announcementModal">
+  <div class="modal-content">
+    <p id="announcementTextDisplay"></p>
+    <button onclick="closeAnnouncement()">Close</button>
+  </div>
 </div>
 
 <div class="proxy-input">
@@ -85,17 +99,18 @@ function updateHistoryDropdown(){
 function loadFromHistory(){ let url=document.getElementById('historySelect').value; if(url){document.getElementById('urlInput').value=url; loadSite(); } }
 updateHistoryDropdown();
 
-// Load announcement
+// Announcement popup
 function loadAnnouncement(){
-  fetch('https://raw.githubusercontent.com/cidler6901/proxy/main/announcement.json') // replace USERNAME/REPO
+  fetch('https://raw.githubusercontent.com/cidler6901/proxy/main/announcement.json') // Replace
   .then(res=>res.json())
   .then(data=>{
-    if(data.announcement && data.announcement.trim()!==""){
+    if(data.enabled && data.announcement && data.announcement.trim()!==""){
       document.getElementById('announcementTextDisplay').textContent=data.announcement;
-      document.getElementById('announcementCard').style.display="block";
+      document.getElementById('announcementModal').style.display="block";
     }
   }).catch(err=>console.log("No announcement found"));
 }
+function closeAnnouncement(){ document.getElementById('announcementModal').style.display="none"; }
 loadAnnouncement();
 </script>
 
