@@ -55,7 +55,7 @@ function login(){
 
 // Load current announcement
 function loadCurrentAnnouncement(){
-  fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?ref=${BRANCH}`)
+  fetch(`https://api.github.com/repos/${cidler6901}/${proxy}/contents/${announcement.json}?ref=${nain}`)
   .then(res=>res.json())
   .then(data=>{
     const content = atob(data.content);
