@@ -1,13 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<style>
+body{font-family:Arial,sans-serif;padding:20px;background:#f0f2f5;}
+input,textarea,button{display:block;width:100%;margin:10px 0;padding:10px;font-size:16px;}
+textarea{height:150px;}
+.login{max-width:400px;margin:auto;background:white;padding:20px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.hidden{display:none;}
+.section{max-width:600px;margin:20px auto;padding:20px;background:white;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.section h2{margin-top:0;}
+.quickLinkItem{margin-bottom:10px;}
+.quickLinkItem input{width:45%;display:inline-block;margin-right:5px;}
+.quickLinkItem button{display:inline-block;}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login" id="loginBox">
+<h2>Admin Login</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- Editor -->
+<div class="hidden" id="editorBox">
+
+<!-- Announcement Section -->
+<div class="section" id="announcementSection">
+<h2>Edit Announcement</h2>
+<textarea id="announcementText" placeholder="Announcement text"></textarea>
+<label><input type="checkbox" id="announcementEnabled"> Enable Announcement</label>
+<button onclick="saveAnnouncement()">Save Announcement</button>
+<button onclick="removeAnnouncement()" style="background:red;color:white;">Remove Announcement</button>
+</div>
+
+<!-- Quick Links Section -->
+<div class="section" id="quickLinksSection">
 <h2>Edit Quick Links</h2>
 <div id="quickLinksEditor"></div>
 <button onclick="addQuickLink()">Add Link</button>
 <button onclick="saveQuickLinks()">Save Quick Links</button>
+</div>
+
+</div>
 
 <script>
+// --- Admin credentials ---
+const ADMIN_USER="admin";
+const ADMIN_PASS="ci259026901";
+
+// --- Login ---
+function login(){
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  if(u===ADMIN_USER && p===ADMIN_PASS){
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('editorBox').classList.remove('hidden');
+    loadCurrentAnnouncement();
+    loadQuickLinks();
+  } else alert("Incorrect username/password!");
+}
+
+// --- Announcements ---
+let currentSHA = null;
+
+function loadCurrentAnnouncement(){
+  fetch("/api/announcement")
+  .then(res=>res.json())
+  .then(data=>{
+    document.getElementById('announcementText').value = data.announcement || "";
+    document.getElementById('announcementEnabled').checked = data.enabled || false;
+    currentSHA = data.sha;
+  });
+}
+
+function saveAnnouncement(){
+  const text = document.getElementById('announcementText').value.trim();
+  const enabled = document.getElementById('announcementEnabled').checked;
+  if(!text) return alert("Announcement cannot be empty!");
+  fetch("/api/announcement",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({announcement:text, enabled, sha:currentSHA})
+  }).then(res=>res.json())
+    .then(()=> { alert("Announcement saved!"); loadCurrentAnnouncement(); });
+}
+
+function removeAnnouncement(){
+  if(confirm("Remove announcement?")){
+    fetch("/api/announcement",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({announcement:"", enabled:false, sha:currentSHA})
+    }).then(res=>res.json())
+      .then(()=> { alert("Announcement removed!"); loadCurrentAnnouncement(); });
+}
+
+// --- Quick Links ---
 let quickLinks = [];
 let quickLinksSHA = null;
 
-// Load Quick Links from API
 function loadQuickLinks(){
   fetch("/api/quicklinks")
     .then(res=>res.json())
@@ -18,12 +115,12 @@ function loadQuickLinks(){
     });
 }
 
-// Render editable Quick Links
 function renderQuickLinksEditor(){
   const container = document.getElementById("quickLinksEditor");
   container.innerHTML = "";
   quickLinks.forEach((link, i)=>{
     const div = document.createElement("div");
+    div.className = "quickLinkItem";
     div.innerHTML = `
       <input type="text" value="${link.name}" placeholder="Name" onchange="quickLinks[${i}].name=this.value">
       <input type="text" value="${link.url}" placeholder="URL" onchange="quickLinks[${i}].url=this.value">
@@ -33,29 +130,24 @@ function renderQuickLinksEditor(){
   });
 }
 
-// Add new link
 function addQuickLink(){
   quickLinks.push({name:"", url:""});
   renderQuickLinksEditor();
 }
 
-// Remove link
 function removeQuickLink(i){
   quickLinks.splice(i,1);
   renderQuickLinksEditor();
 }
 
-// Save to GitHub
 function saveQuickLinks(){
   fetch("/api/quicklinks",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({links:quickLinks, sha:quickLinksSHA})
-  })
-  .then(res=>res.json())
-  .then(()=> { alert("Quick Links saved!"); loadQuickLinks(); });
+    body: JSON.stringify({links:quickLinks, sha:quickLinksSHA})
+  }).then(res=>res.json())
+    .then(()=>{ alert("Quick Links saved!"); loadQuickLinks(); });
 }
-
-// Initialize
-loadQuickLinks();
 </script>
+</body>
+</html>
