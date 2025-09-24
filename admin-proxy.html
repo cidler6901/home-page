@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Announcements</title>
+<title>Announcements</title>
 <style>
 body{font-family:Arial,sans-serif;padding:20px;background:#f0f2f5;}
 input,textarea,button{display:block;width:100%;margin:10px 0;padding:10px;font-size:16px;}
@@ -15,19 +15,18 @@ textarea{height:150px;}
 <body>
 
 <div class="login" id="loginBox">
-<h2>Admin Login</h2>
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
-<button onclick="login()">Login</button>
+  <h2>Admin Login</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
 </div>
 
 <div class="hidden" id="editorBox">
-<h2>Edit Announcement</h2>
-<textarea id="announcementText"></textarea>
-<label><input type="checkbox" id="announcementEnabled"> Enable Announcement</label>
-<button onclick="saveAnnouncement()">Save Announcement</button>
-<button onclick="removeAnnouncement()" style="background:red;color:white;">Remove Announcement</button>
-<p style="font-size:14px;color:#555;">Changes update announcement.json via GitHub API.</p>
+  <h2>Edit Announcement</h2>
+  <textarea id="announcementText"></textarea>
+  <label><input type="checkbox" id="announcementEnabled"> Enable Announcement</label>
+  <button onclick="saveAnnouncement()">Save Announcement</button>
+  <button onclick="removeAnnouncement()" style="background:red;color:white;">Remove Announcement</button>
 </div>
 
 <script>
@@ -55,16 +54,13 @@ function loadCurrentAnnouncement(){
 }
 
 function saveAnnouncement(){
-  const text = document.getElementById('announcementText').value.trim();
-  const enabled = document.getElementById('announcementEnabled').checked;
-  if(!text) return alert("Announcement cannot be empty!");
+  const text=document.getElementById('announcementText').value.trim();
+  const enabled=document.getElementById('announcementEnabled').checked;
   fetch("/api/announcement",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({announcement:text, enabled, sha:window.currentSHA})
-  })
-  .then(res=>res.json())
-  .then(()=> { alert("Saved!"); loadCurrentAnnouncement(); });
+  }).then(()=>{ alert("Saved!"); loadCurrentAnnouncement(); });
 }
 
 function removeAnnouncement(){
@@ -73,9 +69,8 @@ function removeAnnouncement(){
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({announcement:"", enabled:false, sha:window.currentSHA})
-    })
-    .then(res=>res.json())
-    .then(()=> { alert("Removed!"); loadCurrentAnnouncement(); });
+    }).then(()=>{ alert("Removed!"); loadCurrentAnnouncement(); });
+  }
 }
 </script>
 </body>
