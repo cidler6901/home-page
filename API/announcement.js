@@ -4,7 +4,7 @@ const GITHUB_USER = "cidler6901";
 const GITHUB_REPO = "proxy";
 const FILE_PATH = "announcement.json";
 const BRANCH = "main";
-const TOKEN = process.env.GITHUB_TOKEN; // secret in Vercel
+const TOKEN = process.env.GITHUB_TOKEN; // secret stored in Vercel
 
 export default async function handler(req, res) {
   try {
@@ -21,6 +21,7 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const { announcement, enabled, sha } = req.body;
       const content = Buffer.from(JSON.stringify({ announcement, enabled })).toString("base64");
+
       const response = await fetch(
         `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
         {
