@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "announcement": "Welcome to the proxy site! Enjoy browsing safely."
+  "announcement": "Welcome to the proxy site!",
+  "announcementVersion": 2
 }
