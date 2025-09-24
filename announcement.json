@@ -1,5 +1,4 @@
 {
-  "announcement": "sup",
-  "enabled": true,
-  "announcementVersion": 1
+  "announcement": "",
+  "enabled": false
 }
