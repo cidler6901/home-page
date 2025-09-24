@@ -1,81 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Announcements</title>
-<style>
-body{font-family:Arial,sans-serif;padding:20px;background:#f0f2f5;}
-input,textarea,button{display:block;width:100%;margin:10px 0;padding:10px;font-size:16px;}
-textarea{height:150px;}
-.login{max-width:400px;margin:auto;background:white;padding:20px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}
-.hidden{display:none;}
-</style>
-</head>
-<body>
-
-<div class="login" id="loginBox">
-  <h2>Admin Login</h2>
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</div>
-
-<div class="hidden" id="editorBox">
-  <h2>Edit Announcement</h2>
-  <textarea id="announcementText"></textarea>
-  <label><input type="checkbox" id="announcementEnabled"> Enable Announcement</label>
-  <button onclick="saveAnnouncement()">Save Announcement</button>
-  <button onclick="removeAnnouncement()" style="background:red;color:white;">Remove Announcement</button>
-</div>
-
-<script>
-const ADMIN_USER="admin";
-const ADMIN_PASS="ci259026901";
-
-function login(){
-  const u=document.getElementById('username').value;
-  const p=document.getElementById('password').value;
-  if(u===ADMIN_USER && p===ADMIN_PASS){
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById('editorBox').classList.remove('hidden');
-    loadCurrentAnnouncement();
-  } else alert("Incorrect username/password!");
-}
-
-function loadCurrentAnnouncement(){
-  fetch("/api/announcement")
-  .then(res=>res.json())
-  .then(data=>{
-    document.getElementById('announcementText').value = data.announcement || "";
-    document.getElementById('announcementEnabled').checked = data.enabled || false;
-    window.currentSHA = data.sha;
-  });
-}
-
-function saveAnnouncement(){
-  const text=document.getElementById('announcementText').value.trim();
-  const enabled=document.getElementById('announcementEnabled').checked;
-  fetch("/api/announcement",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({announcement:text, enabled, sha:window.currentSHA})
-  }).then(()=>{ alert("Saved!"); loadCurrentAnnouncement(); });
-}
-
-function removeAnnouncement(){
-  if(confirm("Remove announcement?")){
-    fetch("/api/announcement",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({announcement:"", enabled:false, sha:window.currentSHA})
-    }).then(()=>{ alert("Removed!"); loadCurrentAnnouncement(); });
-  }
-}
-</script>
-</body>
-</html>
-
 <h2>Edit Quick Links</h2>
 <div id="quickLinksEditor"></div>
 <button onclick="addQuickLink()">Add Link</button>
@@ -85,6 +7,7 @@ function removeAnnouncement(){
 let quickLinks = [];
 let quickLinksSHA = null;
 
+// Load Quick Links from API
 function loadQuickLinks(){
   fetch("/api/quicklinks")
     .then(res=>res.json())
@@ -95,6 +18,7 @@ function loadQuickLinks(){
     });
 }
 
+// Render editable Quick Links
 function renderQuickLinksEditor(){
   const container = document.getElementById("quickLinksEditor");
   container.innerHTML = "";
@@ -109,16 +33,19 @@ function renderQuickLinksEditor(){
   });
 }
 
+// Add new link
 function addQuickLink(){
   quickLinks.push({name:"", url:""});
   renderQuickLinksEditor();
 }
 
+// Remove link
 function removeQuickLink(i){
   quickLinks.splice(i,1);
   renderQuickLinksEditor();
 }
 
+// Save to GitHub
 function saveQuickLinks(){
   fetch("/api/quicklinks",{
     method:"POST",
@@ -126,7 +53,7 @@ function saveQuickLinks(){
     body:JSON.stringify({links:quickLinks, sha:quickLinksSHA})
   })
   .then(res=>res.json())
-  .then(()=>{ alert("Quick Links saved!"); loadQuickLinks(); });
+  .then(()=> { alert("Quick Links saved!"); loadQuickLinks(); });
 }
 
 // Initialize
